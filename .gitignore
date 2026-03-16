@@ -7,8 +7,3 @@ __pycache__/
 *.log
 *.tmp
 *.bak
-
-*.png
-*.jpg
-*.jpeg
-learning-curve.png
