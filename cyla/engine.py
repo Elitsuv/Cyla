@@ -1,56 +1,77 @@
 import numpy as np
 
-class CYLA:
-    def __init__(self, data, lr=0.4, momentum=0.7):
-        self.data = np.array(data)
+class CylaX1:
+    def __init__(self):
+        self.W1 = np.random.randn(4, 12) * 0.06
+        self.b1 = np.zeros(12)
+
+        self.W2 = np.random.randn(12, 1) * 0.06
+        self.b2 = np.zeros(1)
+
+        self.vW1 = np.zeros_like(self.W1)
+        self.vb1 = np.zeros_like(self.b1)
+        self.vW2 = np.zeros_like(self.W2)
+        self.vb2 = np.zeros_like(self.b2)
+
+        def forward(self, X):
+            h = np.tanh(X @ self.W1 + self.b1)
+            scores = h @ self.W2 + self.b2
+            return scores.ravel()
+        
+        def updater(self, features, reward, lr=0.09):
+            h = np.tanh(features @ self.W1 + self.b1)
+            score = h @ self.W2 + self.b2
+            error = reward * 0.05 - score
+            dW2 = h * error
+            dh = error * self.W2.T * (1 - h ** 2)
+            dW1 = np.outer(features, dh)
+            self.vW1 = 0.65  * self.vW1 + 0.35 * dW1
+            self.vb1 = 0.65  * self.vb1 + 0.35 * dW2
+
+            self.W1 = np.clip(self.W1, -7, 7)
+            self.W2 = np.clip(self.W2, -7, 7)
+
+class main:
+    def __init__(self, data):
+        self.data = list(data)               
         self._n = len(data)
-        self.lr = lr
-        self.momentum = momentum
-        self.counts = np.zeros(self._n, dtype=np.float32)
-        self.last_seen = np.zeros(self._n, dtype=np.float32)
-        self.weights = np.array([0.5, 0.5], dtype=np.float32)
-        self.velocity = np.zeros(2, dtype=np.float32)
-        self.timer = 0
-        self.re_rank_freq = 5
-        self.threshold = 0.4
-        self.hot_zone = np.arange(min(self._n, 5))
+        self.counts = [0] * self._n          
+        self.last_seen = [0] * self._n       
+        self.timer = 0                       
+        self.re_rank_every = 4               
+        self.prefix_ratio = 0.22             
+        self.scorer = CylaX1()         
 
-    def _refresh_priority(self):
-        if self.timer == 0:
-            return
-        f_feat = self.counts / (np.max(self.counts) + 1e-9)
-        r_feat = 1.0 / ((self.timer - self.last_seen) + 1.0)
-        scores = np.stack([f_feat, r_feat], axis=1) @ self.weights
-        k = max(1, int(self._n * self.threshold))
-        self.hot_zone = np.argpartition(scores, -k)[-k:]
-        self.hot_zone = self.hot_zone[np.argsort(scores[self.hot_zone])[::-1]]
+    def _get_features(self, idx):
+        maxc = max(self.counts) + 1e-9
+        f = self.counts[idx] / maxc           
+        r = 1.0 / (self.timer - self.last_seen[idx] + 1)  
+        logf = np.log1p(self.counts[idx]) / 10.0   
+        overdue = (self.timer - self.last_seen[idx]) / (self._n * 2 + 1) 
+        return np.array([f, r, logf, overdue])
 
-    def search(self, target, force_re_rank=False):
+    def search(self, target):
         self.timer += 1
-        if force_re_rank or (self.timer % self.re_rank_freq == 0):
-            self._refresh_priority()
-        hot_indices = self.hot_zone
-        hit_mask = (self.data[hot_indices] == target)
-        if np.any(hit_mask):
-            hit_pos = np.where(hit_mask)[0][0]
-            actual_idx = hot_indices[hit_pos]
-            steps = hit_pos + 1
-            self._update_model(actual_idx, steps)
-            return actual_idx, steps
-        for i, val in enumerate(self.data):
-            if val == target:
-                steps = i + len(hot_indices)
-                self._update_model(i, steps)
-                return i, steps
-        return -1, self._n
 
-    def _update_model(self, idx, steps):
-        reward = 1.0 / (steps + 1e-5)
-        f = self.counts[idx] / (np.max(self.counts) + 1e-9)
-        r = 1.0 / ((self.timer - self.last_seen[idx]) + 1.0)
-        grad = np.array([f, r])
-        self.velocity = self.momentum * self.velocity + self.lr * reward * grad
-        self.weights += self.velocity
-        self.weights = np.clip(self.weights, -5.0, 5.0)
-        self.counts[idx] += 1
-        self.last_seen[idx] = self.timer
+        if self.timer % self.re_rank_every == 0:
+            k = max(1, int(self._n * self.prefix_ratio))
+            prefix = self.data[:k]
+            feats = np.array([self._get_features(self.data.index(x)) for x in prefix])
+            scores = self.scorer.forward(feats)
+            sorted_idx = np.argsort(scores)[::-1]  
+            self.data[:k] = [prefix[i] for i in sorted_idx]
+
+        for pos in range(self._n):
+            if self.data[pos] == target:
+                if pos < int(self._n * self.prefix_ratio):
+                    item = self.data.pop(pos)
+                    self.data.insert(0, item)
+
+                self.counts[pos] += 1
+                self.last_seen[pos] = self.timer
+                features = self._get_features(0)
+                reward = 10.0 / (pos ** 1.5 + 0.1)
+                self.scorer.update(features, reward)
+
+                return pos, pos + 1
+        return -1, self._n

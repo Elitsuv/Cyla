@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+
+*.log
+*.tmp
+*.bak
+
+*.png
+*.jpg
+*.jpeg
+learning-curve.png

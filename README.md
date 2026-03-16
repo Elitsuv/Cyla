@@ -1,37 +1,42 @@
-# CYLA – Adaptive Self-Learning Search Prototype
-[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<div align="center">
+  <img src="assets/banner.png" alt="CYLA Banner" width="100%" style="max-width: 800px;">
+  <br><br>
+  <h1>CYLA</h1>
+  <p><strong>Self-Organizing Adaptive List</strong></p>
+</div>
 
-**v0.1.0-beta** – Early prototype of a self-adjusting linear search that learns better access order from frequency + recency signals.
+<hr width="60%" align="center">
 
-> **Current status (transparent):**  
-> Still slower than naive linear scan (≈ -67% efficiency on Zipf workloads). Work in progress.
+A minimal research prototype that shows a plain Python list can learn access patterns online and reduce average search cost on skewed workloads — no frameworks, no training data.
 
-## Overview
-
-CYLA explores **online adaptive reordering** of a linear list:
-- Small hot zone for fast first checks
-- Momentum-based priority updates
-- NumPy-accelerated
-- Passing unit tests
-
-## Performance (5k items, 20k Zipf α≈1.5 queries)
-
-| Method            | Avg steps/query | Efficiency vs naive |
-|-------------------|-----------------|---------------------|
-| Naive linear scan | ~138–145        | baseline            |
-| CYLA (current)    | ~220–250        | **-67%**            |
-
-→ Learning is active, but convergence needs improvement.
-
-## Requirements
-
-```bash
-Python ≥ 3.8
-pip install numpy
-```
+## Quick Start
 
 ```bash
 git clone https://github.com/Elitsuv/cyla.git
 cd cyla
-pip install numpy
-```
+
+pip install requirement.txt
+
+python example.py          
+python test.py
+
+**Benchmark** (N=5,000 items, 15,000 queries, Zipf α=1.5)  
+Final result: **Naive: 80.2 steps/query** → **CYLA: 166.5 steps/query** → **Gain: -107.7%**  
+
+
+| Queries    | Naive Avg Steps | CYLA Avg Steps | Gain     |
+|------------|-----------------|----------------|----------|
+| 1,500      | 801.8           | 310.1          | +61.3%   |
+| 3,000      | 400.9           | 253.8          | +36.7%   |
+| 4,500      | 267.3           | 216.4          | +19.1%   |
+| 6,000      | 200.5           | 202.7          | -1.1%    |
+| 7,500      | 160.4           | 190.8          | -19.0%   |
+| 9,000      | 133.6           | 185.3          | -38.7%   |
+| 10,500     | 114.5           | 180.8          | -57.8%   |
+| 12,000     | 100.2           | 173.8          | -73.4%   |
+| 13,500     | 89.1            | 171.6          | -92.6%   |
+| 15,000     | 80.2            | 166.5          | -107.7%  |
+
+**Learning Curve** (steps vs queries):
+
+![Learning Curve](assets/learning-curve.png)
