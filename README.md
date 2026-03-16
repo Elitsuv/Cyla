@@ -1,11 +1,8 @@
 <div align="center">
-  <img src="assets/banner.png" alt="CYLA Banner" width="100%" style="max-width: 800px;">
-  <br><br>
+  <img src="assets/cyla.png" alt="CYLA Banner" width="100%" style="max-width: 800px;">
   <h1>CYLA</h1>
   <p><strong>Self-Organizing Adaptive List</strong></p>
 </div>
-
-<hr width="60%" align="center">
 
 A minimal research prototype that shows a plain Python list can learn access patterns online and reduce average search cost on skewed workloads — no frameworks, no training data.
 
@@ -38,5 +35,5 @@ Final result: **Naive: 80.2 steps/query** → **CYLA: 166.5 steps/query** → **
 | 15,000     | 80.2            | 166.5          | -107.7%  |
 
 **Learning Curve** (steps vs queries):
-
-![Learning Curve](assets/learning-curve.png)
+```
+<img src="assets/learning-curve.png" alt="CYLA Banner" width="100%" style="max-width: 800px;">
