@@ -1,5 +1,7 @@
 <div align="center">
   <img src="assets/cyla.png" alt="CYLA Banner" width="100%" style="max-width: 800px;">
+</div>
+<div align="left">
   <h1>CYLA</h1>
   <p><strong>Self-Organizing Adaptive List</strong></p>
 </div>
