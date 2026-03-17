@@ -16,6 +16,7 @@ pip install requirement.txt
 
 python example.py          
 python test.py
+```
 
 **Benchmark** (N=5,000 items, 15,000 queries, Zipf α=1.5)  
 Final result: **Naive: 80.2 steps/query** → **CYLA: 166.5 steps/query** → **Gain: -107.7%**  
@@ -35,5 +36,5 @@ Final result: **Naive: 80.2 steps/query** → **CYLA: 166.5 steps/query** → **
 | 15,000     | 80.2            | 166.5          | -107.7%  |
 
 **Learning Curve** (steps vs queries):
-```
+
 <img src="assets/learning-curve.png" alt="CYLA Banner" width="100%" style="max-width: 800px;">
