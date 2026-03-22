@@ -1,15 +1,15 @@
-from cyla.engine import main
+from cyla.engine import AdaptiveList
+
 items = [
     "iphone-15", "airpods-pro", "macbook-pro", "ipad-air",
     "apple-watch", "homepod-mini", "apple-tv", "magic-mouse",
     "usb-c-cable", "charger", "iphone-case", "wireless-charger"
 ]
 
-# Create the adaptive search list
-searcher = main(items)
+searcher = AdaptiveList(items)
 
 print("Initial order:")
-print(searcher.data[:6], "...")  # show first few
+print(searcher.data[:6], "...")
 print("-" * 60)
 
 queries = [
@@ -27,7 +27,7 @@ for q in queries:
 
 print("-" * 60)
 print("Final order (after learning):")
-print(searcher.data[:6], "...")  # most accessed/recent items should be at front
+print(searcher.data[:6], "...")
 
 query = "airpods-pro"
 idx, steps = searcher.search(query)
