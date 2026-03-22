@@ -1,18 +1,9 @@
 import numpy as np
-
-# ---------------------------------------------------------------------------
-# Hyperparameters
-# ---------------------------------------------------------------------------
-HIDDEN_SIZE   = 12
-INPUT_SIZE    = 4
-OUTPUT_SIZE   = 1
-MOMENTUM      = 0.90
-LR            = 0.09
-WEIGHT_CLIP   = 7.0
-REWARD_SCALE  = 1.0
-RE_RANK_EVERY = 4
-PREFIX_RATIO  = 0.22
-
+from .config import (
+    INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE,
+    LR, MOMENTUM, WEIGHT_CLIP, REWARD_SCALE,
+    RE_RANK_EVERY, PREFIX_RATIO
+)
 
 # ---------------------------------------------------------------------------
 # Neural scorer
