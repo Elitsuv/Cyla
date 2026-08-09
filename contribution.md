@@ -21,7 +21,7 @@ We welcome contributions of all kinds: bug fixes, documentation, performance opt
    - Especially welcome: faster convergence, lower overhead, stability at scale.
 
 3. **How to implement?**  
-   - Fork the repo sitory 
+   - Fork the repository 
    - Create a branch: `git checkout -b feature/your-idea`  
    - Make changes  
    - Add/update tests in `test.py`  

@@ -5,9 +5,6 @@ from .config import (
     RE_RANK_EVERY, PREFIX_RATIO
 )
 
-# ---------------------------------------------------------------------------
-# Neural scorer
-# ---------------------------------------------------------------------------
 class CylaX1:
 
     def __init__(self):
@@ -50,9 +47,6 @@ class CylaX1:
         self.b2 = self.b2 + lr * self.vb2
 
 
-# ---------------------------------------------------------------------------
-# Self-organising search list
-# ---------------------------------------------------------------------------
 class AdaptiveList:
 
     def __init__(self, data):
@@ -65,8 +59,30 @@ class AdaptiveList:
         self.prefix_ratio  = PREFIX_RATIO
         self.scorer        = CylaX1()
 
+    def __len__(self) -> int:
+        return self._n
+
+    def __getitem__(self, index: int) -> object:
+        return self.data[index]
+    
+    def __iter__(self):
+        return iter(self.data)
+
+    def __contains__(self, item) -> bool:
+        return item in self.counts
+
+
+    def append(self, item):
+        if item in self.counts:
+            return
+
+        self.data.append(item)
+        self._n += 1
+        self.counts[item] = 0
+        self.last_seen[item] = self.timer
+
     def _get_features(self, item) -> np.ndarray:
-        max_count = max(self.counts.values()) + 1e-9
+        max_count = max(self.counts.values(), default=0) + 1e-9
         c         = self.counts[item]
         age       = self.timer - self.last_seen[item]
         return np.array([
@@ -97,7 +113,9 @@ class AdaptiveList:
             features = self._get_features(item)
             reward   = 10.0 / (pos ** 1.5 + 0.1)
 
-            if pos >= max(1, int(self._n * self.prefix_ratio)):
+            # Strict Move-To-Front (MTF) baseline
+            # Always move found items to the front immediately
+            if pos > 0:
                 self.data.pop(pos)
                 self.data.insert(0, item)
 
