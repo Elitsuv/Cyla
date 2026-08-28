@@ -2,10 +2,18 @@ import numpy as np
 from .config import (
     INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE,
     LR, MOMENTUM, WEIGHT_CLIP, REWARD_SCALE,
-    RE_RANK_EVERY, PREFIX_RATIO
+    RE_RANK_EVERY, PREFIX_RATIO,
+    MIN_EVIDENCE, USE_CONTENT_PRIOR
 )
 
+
 class CylaX1:
+    """Single-hidden-layer scorer: maps a 5-d feature vector to a scalar
+    priority score used to rank cold items in the prefix window.
+
+    Architecture: Linear(5→12) → tanh → Linear(12→1)
+    Training: online SGD with momentum after every search() hit.
+    """
 
     def __init__(self):
         self.W1 = np.random.randn(INPUT_SIZE, HIDDEN_SIZE) * np.sqrt(2.0 / INPUT_SIZE)
@@ -48,82 +56,127 @@ class CylaX1:
 
 
 class AdaptiveList:
+    """Self-organising list: MTF + cold-gated NN reranking + noise guard.
 
-    def __init__(self, data):
+    Key invariants
+    --------------
+    - Hot items (count > 0) are NEVER reordered by the NN; their positions
+      are determined solely by MTF.
+    - The NN only ranks cold items (count == 0) inside the prefix window,
+      where MTF has no information yet.
+    - The noise guard (MIN_EVIDENCE) prevents one-off queries from polluting
+      the front of the list.  First-ever hits are always allowed (cold-start).
+
+    Parameters
+    ----------
+    data : iterable
+        Initial items.
+    content_scores : dict | None
+        Precomputed ``{item: float}`` from offline embeddings (e.g. MiniLM).
+        Used as the 5th NN feature when USE_CONTENT_PRIOR is True.
+    min_evidence : int | None
+        Override for MIN_EVIDENCE from config.  None → use config default.
+    """
+
+    def __init__(self, data, *, content_scores=None, min_evidence=None):
         self.data          = list(data)
         self._n            = len(data)
         self.counts        = {x: 0 for x in self.data}
+        self.max_count     = 0
         self.last_seen     = {x: 0 for x in self.data}
         self.timer         = 0
         self.re_rank_every = RE_RANK_EVERY
         self.prefix_ratio  = PREFIX_RATIO
         self.scorer        = CylaX1()
+        self.content_scores = content_scores or {}
+        self.min_evidence = min_evidence if min_evidence is not None else MIN_EVIDENCE
 
     def __len__(self) -> int:
         return self._n
 
     def __getitem__(self, index: int) -> object:
         return self.data[index]
-    
+
     def __iter__(self):
         return iter(self.data)
 
     def __contains__(self, item) -> bool:
         return item in self.counts
 
-
     def append(self, item):
         if item in self.counts:
             return
-
         self.data.append(item)
         self._n += 1
         self.counts[item] = 0
         self.last_seen[item] = self.timer
 
     def _get_features(self, item) -> np.ndarray:
-        max_count = max(self.counts.values(), default=0) + 1e-9
-        c         = self.counts[item]
-        age       = self.timer - self.last_seen[item]
+        """5-d feature vector: [freq_ratio, recency, log_freq, age_ratio, content_sim]."""
+        max_c   = self.max_count + 1e-9
+        c       = self.counts[item]
+        age     = self.timer - self.last_seen[item]
+        content = (self.content_scores.get(item, 0.0)
+                   if USE_CONTENT_PRIOR else 0.0)
         return np.array([
-            c / max_count,
+            c / max_c,
             1.0 / (age + 1),
             np.log1p(c) / 10.0,
-            age / (self._n * 2 + 1)
+            age / (self._n * 2 + 1),
+            content
         ])
 
     def _maybe_rerank(self):
+        """Cold-gated rerank: NN scores only count==0 items in the prefix.
+        Hot items keep their MTF-determined order untouched."""
         if self.timer % self.re_rank_every != 0:
             return
-        k             = max(1, int(self._n * self.prefix_ratio))
-        prefix        = self.data[:k]
-        feats         = np.array([self._get_features(x) for x in prefix])
-        scores        = self.scorer.forward(feats)
-        sorted_idx    = np.argsort(scores)[::-1]
-        self.data[:k] = [prefix[i] for i in sorted_idx]
+        k      = max(1, int(self._n * self.prefix_ratio))
+        prefix = self.data[:k]
+
+        hot  = [x for x in prefix if self.counts[x] > 0]
+        cold = [x for x in prefix if self.counts[x] == 0]
+
+        if cold:
+            feats       = np.array([self._get_features(x) for x in cold])
+            scores      = self.scorer.forward(feats)
+            cold_sorted = [cold[i] for i in np.argsort(scores)[::-1]]
+        else:
+            cold_sorted = cold
+
+        self.data[:k] = hot + cold_sorted
 
     def search(self, target) -> tuple[int, int]:
+        """Linear search with MTF promotion + noise guard.
+
+        Returns (found_position, steps).  -1 if not found.
+        """
         self.timer += 1
         self._maybe_rerank()
 
-        for pos, item in enumerate(self.data):
-            if item != target:
-                continue
+        try:
+            pos = self.data.index(target)
+        except ValueError:
+            return -1, self._n
 
-            features = self._get_features(item)
-            reward   = 10.0 / (pos ** 1.5 + 0.1)
+        features = self._get_features(target)
+        reward   = 10.0 / (pos ** 1.5 + 0.1)
 
-            # Strict Move-To-Front (MTF) baseline
-            # Always move found items to the front immediately
-            if pos > 0:
-                self.data.pop(pos)
-                self.data.insert(0, item)
+        # Promote via MTF only if: (a) first-ever hit, or
+        # (b) item has accumulated >= min_evidence hits.
+        current_count = self.counts[target]
+        should_promote = (
+            current_count == 0
+            or current_count + 1 >= self.min_evidence
+        )
+        if pos > 0 and should_promote:
+            self.data.pop(pos)
+            self.data.insert(0, target)
 
-            self.counts[item]   += 1
-            self.last_seen[item] = self.timer
+        self.counts[target]   += 1
+        if self.counts[target] > self.max_count:
+            self.max_count = self.counts[target]
+        self.last_seen[target] = self.timer
+        self.scorer.update(features, reward)
 
-            self.scorer.update(features, reward)
-
-            return pos, pos + 1
-
-        return -1, self._n
+        return pos, pos + 1

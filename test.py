@@ -85,6 +85,61 @@ class TestAdaptiveList(unittest.TestCase):
             idx, _ = self.agent.search(item)
             self.assertGreaterEqual(idx, 0, f"'{item}' lost after heavy use")
 
+    # -- CYLA v2: noise guard -------------------------------------------------
+
+    def test_min_evidence_gating(self):
+        """min_evidence=3: cold-start promotes, sub-threshold does not."""
+        agent = AdaptiveList(self.data, min_evidence=3)
+
+        # First-ever hit (cold-start exception) → promotes immediately
+        agent.search("elderberry")
+        self.assertEqual(agent.data[0], "elderberry",
+                         "Cold-start (first-ever hit) should still promote")
+
+        # Build up state: elderberry count=1, push it back with other searches
+        agent2 = AdaptiveList(self.data, min_evidence=3)
+        agent2.search("elderberry")     # count 0→1, cold-start promotes
+        agent2.search("assam")          # pushes assam to front
+        agent2.search("boron")          # pushes boron to front
+
+        # count 1→2, below threshold → should NOT move
+        pos_before = agent2.data.index("elderberry")
+        agent2.search("elderberry")
+        pos_after = agent2.data.index("elderberry")
+        self.assertEqual(pos_before, pos_after,
+                         "Item below min_evidence should not be promoted")
+
+        # count 2→3, meets threshold → should promote
+        agent2.search("elderberry")
+        self.assertEqual(agent2.data[0], "elderberry",
+                         "Item at min_evidence threshold should be promoted")
+
+    # -- CYLA v2: cold-gated reranking ----------------------------------------
+
+    def test_cold_only_reranking(self):
+        """Rerank preserves hot items' MTF order; only cold items are NN-sorted."""
+        agent = AdaptiveList(self.data)
+        for _ in range(10):
+            agent.search("elderberry")
+        for _ in range(5):
+            agent.search("carbon")
+
+        k = max(1, int(agent._n * agent.prefix_ratio))
+
+        # Align timer so next search triggers rerank; search carbon (already
+        # at front) so the MTF move is a no-op and doesn't disturb the order.
+        agent.timer = agent.re_rank_every - 1
+        prefix_before = agent.data[:k]
+        hot_before = [x for x in prefix_before if agent.counts[x] > 0]
+
+        agent.search("carbon")
+
+        prefix_after = agent.data[:k]
+        hot_after = [x for x in prefix_after if agent.counts[x] > 0]
+
+        self.assertEqual(hot_before, hot_after,
+                         "Hot items' relative order should be preserved by rerank")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
