@@ -1,9 +1,26 @@
+# Byte-compiled / optimized files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.vscode/
+*.py[cod]
+*$py.class
 
-*.log
-*.tmp
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Editor & OS artifacts
+.vscode/
+.idea/
+*.swp
 *.bak
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

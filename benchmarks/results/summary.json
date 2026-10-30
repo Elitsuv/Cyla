@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "project": "Cyla",
+    "description": "Multi-algorithm, multi-regime benchmark evaluation for self-organizing lists",
+    "total_queries_evaluated": 8100000,
+    "list_size_N": 500,
+    "algorithms": [
+      "Naive (Static)",
+      "Transpose",
+      "CYLA v1 (Unbounded)",
+      "Freq-Count",
+      "MTF (Sleator & Tarjan)",
+      "CYLA v2 (Cold-Gated)"
+    ]
+  },
+  "regime_1_stationary_zipf": {
+    "description": "Static Zipfian access distributions across varying skew levels",
+    "queries_per_run": 20000,
+    "seeds": 10,
+    "results": {
+      "alpha_0.8": {
+        "Naive (Static)": { "avg_steps": 249.6, "ci_95": 10.0, "comp_ratio": 1.73 },
+        "Transpose": { "avg_steps": 195.8, "ci_95": 3.7, "comp_ratio": 1.36 },
+        "CYLA v1 (Unbounded)": { "avg_steps": 161.2, "ci_95": 13.3, "comp_ratio": 1.12 },
+        "Freq-Count": { "avg_steps": 119.0, "ci_95": 0.5, "comp_ratio": 0.82 },
+        "MTF (Sleator & Tarjan)": { "avg_steps": 149.3, "ci_95": 0.8, "comp_ratio": 1.03 },
+        "CYLA v2 (Cold-Gated)": { "avg_steps": 149.3, "ci_95": 0.8, "comp_ratio": 1.03 }
+      },
+      "alpha_1.2": {
+        "Naive (Static)": { "avg_steps": 244.5, "ci_95": 27.0, "comp_ratio": 4.12 },
+        "Transpose": { "avg_steps": 115.8, "ci_95": 3.7, "comp_ratio": 1.95 },
+        "CYLA v1 (Unbounded)": { "avg_steps": 98.5, "ci_95": 5.7, "comp_ratio": 1.66 },
+        "Freq-Count": { "avg_steps": 47.7, "ci_95": 0.4, "comp_ratio": 0.80 },
+        "MTF (Sleator & Tarjan)": { "avg_steps": 62.5, "ci_95": 0.5, "comp_ratio": 1.05 },
+        "CYLA v2 (Cold-Gated)": { "avg_steps": 62.5, "ci_95": 0.5, "comp_ratio": 1.05 }
+      },
+      "alpha_1.6": {
+        "Naive (Static)": { "avg_steps": 238.8, "ci_95": 46.1, "comp_ratio": 21.10 },
+        "Transpose": { "avg_steps": 59.4, "ci_95": 2.9, "comp_ratio": 5.24 },
+        "CYLA v1 (Unbounded)": { "avg_steps": 56.7, "ci_95": 2.9, "comp_ratio": 5.00 },
+        "Freq-Count": { "avg_steps": 15.1, "ci_95": 0.1, "comp_ratio": 1.33 },
+        "MTF (Sleator & Tarjan)": { "avg_steps": 19.5, "ci_95": 0.2, "comp_ratio": 1.72 },
+        "CYLA v2 (Cold-Gated)": { "avg_steps": 19.5, "ci_95": 0.2, "comp_ratio": 1.72 }
+      }
+    }
+  },
+  "regime_2_drifting_zipf": {
+    "description": "3 non-stationary phases of 10,000 queries with abrupt hot-set permutations",
+    "alpha": 1.2,
+    "queries_per_phase": 10000,
+    "total_queries": 30000,
+    "seeds": 5,
+    "results": {
+      "Naive (Static)": { "phase_1": 239.9, "phase_2": 245.8, "phase_3": 264.6, "churn": 0 },
+      "Freq-Count": { "phase_1": 50.7, "phase_2": 72.3, "phase_3": 84.7, "churn": 0 },
+      "Transpose": { "phase_1": 135.7, "phase_2": 131.5, "phase_3": 137.5, "churn": 184 },
+      "MTF (Sleator & Tarjan)": { "phase_1": 63.6, "phase_2": 63.1, "phase_3": 62.7, "churn": 184 },
+      "CYLA v1 (Unbounded)": { "phase_1": 96.5, "phase_2": 98.2, "phase_3": 97.8, "churn": 184 },
+      "CYLA v2 (Cold-Gated)": { "phase_1": 63.6, "phase_2": 63.1, "phase_3": 62.7, "churn": 0 }
+    }
+  },
+  "regime_3_noise_sensitivity": {
+    "description": "Zipf distribution with injected uniform singleton query noise",
+    "alpha": 1.2,
+    "queries_per_run": 20000,
+    "seeds": 10,
+    "results": {
+      "Naive (Static)": { "noise_0%": 249.7, "noise_10%": 250.1, "delta_10%": "+0.1%", "noise_30%": 250.3, "delta_30%": "+0.2%" },
+      "Transpose": { "noise_0%": 115.2, "noise_10%": 131.6, "delta_10%": "+14.2%", "noise_30%": 163.0, "delta_30%": "+41.6%" },
+      "CYLA v1 (Unbounded)": { "noise_0%": 95.9, "noise_10%": 123.0, "delta_10%": "+28.3%", "noise_30%": 157.4, "delta_30%": "+64.2%" },
+      "Freq-Count": { "noise_0%": 47.5, "noise_10%": 69.0, "delta_10%": "+45.2%", "noise_30%": 111.4, "delta_30%": "+134.4%" },
+      "MTF (Sleator & Tarjan)": { "noise_0%": 62.0, "noise_10%": 86.4, "delta_10%": "+39.4%", "noise_30%": 130.7, "delta_30%": "+110.9%" },
+      "CYLA v2 (Cold-Gated)": { "noise_0%": 62.0, "noise_10%": 86.4, "delta_10%": "+39.4%", "noise_30%": 130.7, "delta_30%": "+110.9%" }
+    }
+  },
+  "key_findings": {
+    "cyla_v1": "Unbounded neural reranking of the prefix degraded MTF performance significantly (56.7 vs 19.5 steps on alpha=1.6) due to noisy SGD reordering destroying MTF recency guarantees.",
+    "cyla_v2": "Restricting the neural scorer to cold items (count == 0) preserved MTF order for hot items, but because cold items all share identical features (zero hits, zero recency) and prefix cold items vanish under repeated queries, CYLA v2 degenerated to exactly replicating MTF search step counts across all regimes while incurring additional neural forward/backward compute overhead."
+  }
+}
+

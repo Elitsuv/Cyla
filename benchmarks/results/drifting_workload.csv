@@ -1,0 +1,7 @@
+algorithm,phase_1_avg_steps,phase_2_avg_steps,phase_3_avg_steps,singleton_churn,notes
+Naive (Static),239.9,245.8,264.6,0,No adaptation
+Freq-Count,50.7,72.3,84.7,0,Degrades due to historical inertia
+Transpose,135.7,131.5,137.5,184,Slow convergence via pairwise swaps
+MTF (Sleator & Tarjan),63.6,63.1,62.7,184,Instant adaptation to phase shift
+CYLA v1 (Unbounded),96.5,98.2,97.8,184,Lagging weights disrupt hot items
+CYLA v2 (Cold-Gated),63.6,63.1,62.7,0,Identical search trajectories to MTF

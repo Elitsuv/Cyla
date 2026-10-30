@@ -1,0 +1,7 @@
+algorithm,noise_0_pct_avg_steps,noise_10_pct_avg_steps,noise_10_pct_delta_pct,noise_30_pct_avg_steps,noise_30_pct_delta_pct
+Naive (Static),249.7,250.1,+0.1,250.3,+0.2
+Transpose,115.2,131.6,+14.2,163.0,+41.6
+CYLA v1 (Unbounded),95.9,123.0,+28.3,157.4,+64.2
+Freq-Count,47.5,69.0,+45.2,111.4,+134.4
+MTF (Sleator & Tarjan),62.0,86.4,+39.4,130.7,+110.9
+CYLA v2 (Cold-Gated),62.0,86.4,+39.4,130.7,+110.9

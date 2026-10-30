@@ -1,47 +1,45 @@
-<div align="center">
-  <img src="assets/cyla.png" alt="CYLA Banner" width="800">
-  <br><br>
-  <h1>CYLA – Self-Organizing Adaptive List</h1>
-</div>
+# Contributing to Cyla
 
-# Contributing to CYLA
+Cyla is an open-source research prototype that evaluated online neural scoring on top of self-organizing lists. As documented in the project results, the neural scoring approach did not demonstrate gains over classic Move-to-Front.
 
-Thank you for your interest in CYLA — an open-source research prototype exploring lightweight online adaptive reordering in linear search structures.
+We welcome analytical contributions, alternative algorithmic formulations, formal proofs, dataset evaluations, or bug fixes.
 
-We welcome contributions of all kinds: bug fixes, documentation, performance optimizations, new features, ablation studies, theoretical analysis, real-dataset experiments, or visualization tools.
+---
 
-### How to Contribute
+## Development Setup
 
-1. **Found a bug or have a question?**  
-   Open an issue with a clear title and description.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Elitsuv/cyla.git
+   cd cyla
+   ```
 
-2. **Want to add a feature or improvement?**  
-   - Open an issue first (label: feature)  
-   - Describe the problem/opportunity, proposed solution, and expected impact  
-   - Especially welcome: faster convergence, lower overhead, stability at scale.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-3. **How to implement?**  
-   - Fork the repository 
-   - Create a branch: `git checkout -b feature/your-idea`  
-   - Make changes  
-   - Add/update tests in `test.py`  
-   - Run tests: `python test.py`  
-   - Commit with clear message: `git commit -m "feat: add aggressive prefix sort"`  
-   - Push and open a PR to `main`  
-   - Include before/after improvements or plots if applicable in the desc of issue
+3. Run the test suite:
+   ```bash
+   python test.py
+   # or
+   python -m unittest discover tests
+   ```
 
-### Guidelines
+4. Run the benchmark suite:
+   ```bash
+   # Quick smoke run
+   python benchmark.py --fast
 
-- Keep code simple, readable, and framework-free (only NumPy allowed)  
-- All contributions are licensed under MIT
+   # Full 8.1M query evaluation
+   python benchmark.py
+   ```
 
-### High-Impact Areas
+---
 
-- Theoretical analysis (competitive ratio, amortized cost)  
-- Comparisons (MTF, LRU, LFU, etc.)  
-- Real datasets (words, queries, products, logs)  
-- Visualizations (learning curves, top-k inspection)  
-- Performance optimizations (reduce reorder cost)  
-- Ports to C++/Rust for embedded/production
+## Guidelines
 
-Every PR — big or small — helps make CYLA more valuable.
+- **Simplicity**: Code should remain dependency-minimal (pure Python and NumPy for core logic).
+- **Transparency**: Any modifications to scoring or list heuristics must be evaluated across the standard benchmark regimes (`stationary_zipf`, `drifting_workload`, `noise_sensitivity`) with full honesty regarding competitive ratios and CPU overhead.
+- **Testing**: Add or update test coverage under `tests/` for any behavioral changes.
+- **License**: All contributions are licensed under the MIT License.
