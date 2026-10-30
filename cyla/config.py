@@ -1,20 +1,24 @@
-# -- CylaX1 neural-network architecture --
-INPUT_SIZE    = 5       # [freq_ratio, recency, log_freq, age_ratio, content_sim]
-HIDDEN_SIZE   = 12
-OUTPUT_SIZE   = 1
+"""
+Configuration parameters for Cyla's online neural scorer and adaptive list engine.
+"""
 
-# -- Training hyper-parameters --
-LR            = 0.09
-MOMENTUM      = 0.90
-WEIGHT_CLIP   = 7.0     # prevents weight divergence
-REWARD_SCALE  = 1.0
+# -- CylaX1 neural-network architecture --
+INPUT_SIZE = 5          # Features: [freq_ratio, recency, log_freq, age_ratio, content_sim]
+HIDDEN_SIZE = 12        # Hidden units in single-layer MLP
+OUTPUT_SIZE = 1         # Scalar priority score
+
+# -- Training hyper-parameters (Online SGD) --
+LR = 0.09               # Learning rate
+MOMENTUM = 0.90         # Momentum factor
+WEIGHT_CLIP = 7.0       # Gradient/weight divergence bounding
+REWARD_SCALE = 1.0      # Scalar scaling for search position reward
 
 # -- Periodic reranking schedule --
-RE_RANK_EVERY = 4       # rerank prefix every N searches
-PREFIX_RATIO  = 0.22    # fraction of the list treated as prefix
+RE_RANK_EVERY = 4       # Number of search operations between prefix re-evaluations
+PREFIX_RATIO = 0.22     # Fraction of total list capacity designated as prefix window
 
 # -- Noise guard --
-MIN_EVIDENCE  = 1       # hits required before MTF promotion (1 = pure MTF)
+MIN_EVIDENCE = 1        # Hits required before promotion (1 = standard MTF behavior)
 
-# -- Optional content-based prior --
-USE_CONTENT_PRIOR = False   # set True to use precomputed embeddings as 5th feature
+# -- Content-based prior --
+USE_CONTENT_PRIOR = False  # Enable to use external embedding similarities as 5th feature
